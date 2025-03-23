@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const CodeAnalyzer = require('./analyzer');
+
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
@@ -21,8 +23,32 @@ switch (command) {
             console.error('Error: Please specify a path to analyze');
             process.exit(1);
         }
-        console.log(`Analyzing: ${args[1]}`);
-        console.log('Analysis feature not implemented yet.');
+
+        const analyzer = new CodeAnalyzer();
+        try {
+            const results = analyzer.analyzeDirectory(args[1]);
+
+            if (results.length === 0) {
+                console.log('No issues found! Your code looks good.');
+            } else {
+                console.log(`\nFound ${results.length} files with issues:\n`);
+
+                results.forEach(result => {
+                    console.log(`📄 ${result.file}`);
+                    console.log(`   Lines: ${result.metrics.codeLines} (${result.metrics.totalLines} total)`);
+
+                    result.issues.forEach(issue => {
+                        const severity = issue.severity === 'high' ? '🔴' :
+                                       issue.severity === 'medium' ? '🟡' : '🟢';
+                        console.log(`   ${severity} Line ${issue.line}: ${issue.message}`);
+                    });
+                    console.log('');
+                });
+            }
+        } catch (err) {
+            console.error(`Error: ${err.message}`);
+            process.exit(1);
+        }
         break;
 
     case '--version':
