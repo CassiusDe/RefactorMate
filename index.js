@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const CodeAnalyzer = require('./analyzer');
+const ConfigManager = require('./config');
 
 const args = process.argv.slice(2);
 
@@ -10,6 +11,7 @@ if (args.length === 0) {
     console.log('');
     console.log('Commands:');
     console.log('  analyze <path>    Analyze code for refactoring opportunities');
+    console.log('  init             Create a configuration file');
     console.log('  --help           Show this help message');
     console.log('  --version        Show version');
     process.exit(0);
@@ -49,6 +51,11 @@ switch (command) {
             console.error(`Error: ${err.message}`);
             process.exit(1);
         }
+        break;
+
+    case 'init':
+        const configManager = new ConfigManager();
+        configManager.generateSampleConfig();
         break;
 
     case '--version':

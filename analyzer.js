@@ -1,9 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const ConfigManager = require('./config');
 
 class CodeAnalyzer {
-    constructor() {
-        this.supportedExtensions = ['.js', '.ts', '.py'];
+    constructor(config = null) {
+        const configManager = new ConfigManager();
+        this.config = config || configManager.loadConfig();
+        this.supportedExtensions = this.config.supportedExtensions;
         this.results = [];
     }
 
@@ -91,7 +94,7 @@ class CodeAnalyzer {
             const methodContent = this.extractMethodContent(content, startPos);
             const lineCount = methodContent.split('\n').length;
 
-            if (lineCount > 20) {
+            if (lineCount > this.config.rules.longMethodThreshold) {
                 analysis.issues.push({
                     type: 'long_method',
                     severity: 'medium',
@@ -109,7 +112,7 @@ class CodeAnalyzer {
         while ((match = functionPattern.exec(content)) !== null) {
             const params = match[1].split(',').filter(p => p.trim().length > 0);
 
-            if (params.length > 4) {
+            if (params.length > this.config.rules.longParameterListThreshold) {
                 analysis.issues.push({
                     type: 'long_parameter_list',
                     severity: 'low',
@@ -129,7 +132,7 @@ class CodeAnalyzer {
             const methodContent = this.extractPythonMethodContent(content, startPos);
             const lineCount = methodContent.split('\n').length;
 
-            if (lineCount > 20) {
+            if (lineCount > this.config.rules.longMethodThreshold) {
                 analysis.issues.push({
                     type: 'long_method',
                     severity: 'medium',
@@ -148,7 +151,7 @@ class CodeAnalyzer {
             const params = match[1].split(',')
                 .filter(p => p.trim().length > 0 && p.trim() !== 'self');
 
-            if (params.length > 4) {
+            if (params.length > this.config.rules.longParameterListThreshold) {
                 analysis.issues.push({
                     type: 'long_parameter_list',
                     severity: 'low',
